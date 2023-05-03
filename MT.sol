@@ -191,14 +191,14 @@ contract MineableToken is IERC20 {
 
 
 	//comability function
-	function mint(uint256 nonce, bytes32 challenge_digest) public payable returns (bool success) {
+	function mint(uint256 nonce, bytes32 challenge_digest) public returns (bool success) {
 		mintTo(nonce, challenge_digest, msg.sender);
 		return true;
 	}
 	
 
 
-	function mintTo(uint256 nonce, bytes32 challenge_digest, address mintToAddress) public payable returns (uint256 totalOwed) {
+	function mintTo(uint256 nonce, bytes32 challenge_digest, address mintToAddress) public returns (uint256 totalOwed) {
 
 		bytes32 digest =  keccak256(abi.encodePacked(challengeNumber, msg.sender, nonce));
 
@@ -604,11 +604,12 @@ contract MineableToken is IERC20 {
 
 	  //Allow ETH to enter
 	receive() external payable {
-
+        revert();
 	}
 
 
 	fallback() external payable {
+            revert();
 
 	}
 }
