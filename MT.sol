@@ -1,11 +1,11 @@
-// Mineable Token (MT) - Mineable Token Contract
+// Mineable Token (0xMT) - Mineable Token Contract
 //	
-// Symbol: MT
+// Symbol: 0xMT
 // Decimals: 18 
 //
 // Total supply: 21,000,000
 // Mined over 50+ years using Bitcoins Distrubtion halvings every 4 years. Uses Proof-oF-Work to distribute the tokens. 
-//Public Miner is available.
+// Public Miner is available.
 //
 //      
 // No premine, dev cut, or advantage taken at launch. Public miner available at launch.  100% of the token is given away fairly over 100+ years using Bitcoins model!
@@ -110,7 +110,7 @@ library ExtendedMath2 {
 // File: contracts/interfaces/IERC20.sol
 
 interface IERC20 {
-	function totalSupply() external view returns (uint256);
+    function totalSupply() external view returns (uint256);
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     function transfer(address _to, uint _value) external returns (bool success);
@@ -171,17 +171,23 @@ contract MineableToken is IERC20 {
     // mint 1 token to setup LPs
 	    constructor() {
 	        reward_amount = 50 * 10**uint(decimals);
-    	    rewardEra = 0;
+	        rewardEra = 0;
 	        tokensMinted = 0;
 	        epochCount = 0;
 	        epochOld = 0;
-	        miningTarget = _MAXIMUM_TARGET.div(1);
-            latestDifficultyPeriodStarted2 = block.timestamp;
-    	    _startNewMiningEpoch();
+	        miningTarget = _MAXIMUM_TARGET.div(278000000); // 2 TH/s at 12 minute difficulty
+	        latestDifficultyPeriodStarted2 = block.timestamp;
+	        _startNewMiningEpoch();
 	}
 
-
-
+///////////////////////////////////////////////////////////////////////
+/// INITIALIZER, so contract can be public and viewed before launch ///
+///////////////////////////////////////////////////////////////////////
+	function intialize()  public returns (bool success) {
+	
+		miningTarget = _MAXIMUM_TARGET.div(1);
+		return true;
+	}
 
 /////////////////////////////
 // Main Contract Functions //
@@ -213,7 +219,6 @@ contract MineableToken is IERC20 {
 		emit Mint(mintToAddress, reward_amount, epochCount, challengeNumber );
 
 		return totalOwed;
-
 	}
 	
 
@@ -305,12 +310,14 @@ contract MineableToken is IERC20 {
 /////////////////////////
 
 	function blocksFromReadjust() public view returns (uint256 blocks){
+	//How many blocks it is from the last readjust
 		blocks = (epochCount - epochOld);
 		return blocks;
 	}
 	
-
+	
 	function blocksToReadjust() public view returns (uint blocks){
+	//Tells you how many blocks until next difficulty adjustment will be
 		if((epochCount - epochOld) == 0){
 				return (_BLOCKS_PER_READJUSTMENT);
 		}
@@ -329,7 +336,7 @@ contract MineableToken is IERC20 {
 	
 	}
 
-
+//Tells you what the next difficulty will be
 	function reAdjustsToWhatDifficulty() public view returns (uint difficulty) {
 		if(epochCount - epochOld == 0){
 			return _MAXIMUM_TARGET.div(miningTarget);
@@ -626,7 +633,7 @@ contract MineableToken is IERC20 {
 * MIT License
 * ===========
 *
-* Copyright (c) 2023 Arbitrum Bitcoin and Staking (ABAS)
+* Copyright (c) 2023 Mineable Token (0xMT)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
