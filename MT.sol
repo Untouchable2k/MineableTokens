@@ -137,7 +137,7 @@ contract MineableToken is IERC20 {
 // Managment events
     uint256 override public totalSupply = 21000000000000000000000000;
     bytes32 private constant BALANCE_KEY = keccak256("balance");
-    //MineableToken INITALIZE Start
+//MineableToken INITALIZE Start
 	
     uint _totalSupply = 21000000000000000000000000;
     uint public epochOld = 0;  //Epoch count at each readjustment 
@@ -164,7 +164,7 @@ contract MineableToken is IERC20 {
     
     // metadata
     string public name = "Mineable Token";
-    string public constant symbol = "MT";
+    string public constant symbol = "0xMT";
     uint8 public constant decimals = 18;
 	
     
