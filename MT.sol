@@ -5,7 +5,7 @@
 //
 // Total supply: 21,000,000
 // Mined over 50+ years using Bitcoins Distrubtion halvings every 4 years. Uses Proof-oF-Work to distribute the tokens. 
-//Public Miner is available.
+// Public Miner is available.
 //
 //      
 // No premine, dev cut, or advantage taken at launch. Public miner available at launch.  100% of the token is given away fairly over 100+ years using Bitcoins model!
