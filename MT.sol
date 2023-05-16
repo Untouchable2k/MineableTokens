@@ -134,7 +134,7 @@ contract MineableToken is IERC20 {
     event MegaMint(address indexed from, uint epochCount, bytes32 newChallengeNumber, uint NumberOfTokensMinted, uint256 TokenMultipler);
 
 // Managment events
-    uint256 override public totalSupply = 52500001000000000000000000;
+    uint256 override public totalSupply = 21000000000000000000000000;
     bytes32 private constant BALANCE_KEY = keccak256("balance");
     //BITCOIN INITALIZE Start
 	
