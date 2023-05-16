@@ -1,6 +1,6 @@
-// Mineable Token (MT) - Mineable Token Contract
+// Mineable Token (0xMT) - Mineable Token Contract
 //	
-// Symbol: MT
+// Symbol: 0xMT
 // Decimals: 18 
 //
 // Total supply: 21,000,000
