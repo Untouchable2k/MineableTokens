@@ -179,19 +179,15 @@ contract MineableToken is IERC20 {
 
 
 
-	///
-	// Managment
-	///
+/////////////////////////////
+// Main Contract Functions //
+/////////////////////////////
 
-
-
-	//comability function
 	function mint(uint256 nonce, bytes32 challenge_digest) public returns (bool success) {
 		mintTo(nonce, challenge_digest, msg.sender);
 		return true;
 	}
 	
-
 
 	function mintTo(uint256 nonce, bytes32 challenge_digest, address mintToAddress) public returns (uint256 totalOwed) {
 
@@ -216,33 +212,6 @@ contract MineableToken is IERC20 {
 
 	}
 	
-	
-
-	function blocksFromReadjust() public view returns (uint256 blocks){
-		blocks = (epochCount - epochOld);
-		return blocks;
-	}
-	
-
-	function blocksToReadjust() public view returns (uint blocks){
-		if((epochCount - epochOld) == 0){
-				return (_BLOCKS_PER_READJUSTMENT);
-		}
-		uint256 blktimestamp = block.timestamp;
-		uint TimeSinceLastDifficultyPeriod2 = blktimestamp - latestreAdjustStarted;
-		uint adjusDiffTargetTime = targetTime * ((epochCount - epochOld) % (_BLOCKS_PER_READJUSTMENT/8)); 
-
-		if( TimeSinceLastDifficultyPeriod2 > adjusDiffTargetTime)
-		{
-				blocks = _BLOCKS_PER_READJUSTMENT/8 - ((epochCount - epochOld) % (_BLOCKS_PER_READJUSTMENT/8));
-				return (blocks);
-		}else{
-			    blocks = _BLOCKS_PER_READJUSTMENT - ((epochCount - epochOld) % _BLOCKS_PER_READJUSTMENT);
-			    return (blocks);
-		}
-	
-	}
-
 
 	function _startNewMiningEpoch() internal {
 
@@ -290,7 +259,73 @@ contract MineableToken is IERC20 {
 		bytes32 challengeNumber2 = ArbSys(0x0000000000000000000000000000000000000064).arbBlockHash( ArbSys(0x0000000000000000000000000000000000000064).arbBlockNumber() - 1);
 		require(challengeNumber2 != challengeNumber, "No same challenge Solves");
 		challengeNumber = challengeNumber2;
- }
+    }
+
+
+	function _reAdjustDifficulty() internal {
+		uint256 blktimestamp = block.timestamp;
+		uint TimeSinceLastDifficultyPeriod2 = blktimestamp - latestDifficultyPeriodStarted2;
+		uint epochTotal = epochCount - epochOld;
+		uint adjusDiffTargetTime = targetTime *  epochTotal; 
+		epochOld = epochCount;
+
+		//if there were less eth blocks passed in time than expected
+		if( TimeSinceLastDifficultyPeriod2 < adjusDiffTargetTime )
+		{
+			uint excess_block_pct = (adjusDiffTargetTime.mult(100)).div( TimeSinceLastDifficultyPeriod2 );
+			uint excess_block_pct_extra = excess_block_pct.sub(100).limitLessThan(1000);
+			//make it harder 
+			miningTarget = miningTarget.sub(miningTarget.div(2000).mult(excess_block_pct_extra));   //by up to 50 %
+		}else{
+			uint shortage_block_pct = (TimeSinceLastDifficultyPeriod2.mult(100)).div( adjusDiffTargetTime );
+			uint shortage_block_pct_extra = shortage_block_pct.sub(100).limitLessThan(1000); //always between 0 and 1000
+			//make it easier
+			miningTarget = miningTarget.add(miningTarget.div(500).mult(shortage_block_pct_extra));   //by up to 200 %
+		}
+
+		latestDifficultyPeriodStarted2 = blktimestamp;
+		latestDifficultyPeriodStarted = ArbSys(0x0000000000000000000000000000000000000064).arbBlockNumber();
+		if(miningTarget < _MINIMUM_TARGET) //very difficult
+		{
+			miningTarget = _MINIMUM_TARGET;
+		}
+		if(miningTarget > _MAXIMUM_TARGET) //very easy
+		{
+			miningTarget = _MAXIMUM_TARGET;
+		}
+		
+	}
+
+
+
+/////////////////////////
+//// Helper Functions ///
+/////////////////////////
+
+	function blocksFromReadjust() public view returns (uint256 blocks){
+		blocks = (epochCount - epochOld);
+		return blocks;
+	}
+	
+
+	function blocksToReadjust() public view returns (uint blocks){
+		if((epochCount - epochOld) == 0){
+				return (_BLOCKS_PER_READJUSTMENT);
+		}
+		uint256 blktimestamp = block.timestamp;
+		uint TimeSinceLastDifficultyPeriod2 = blktimestamp - latestreAdjustStarted;
+		uint adjusDiffTargetTime = targetTime * ((epochCount - epochOld) % (_BLOCKS_PER_READJUSTMENT/8)); 
+
+		if( TimeSinceLastDifficultyPeriod2 > adjusDiffTargetTime)
+		{
+				blocks = _BLOCKS_PER_READJUSTMENT/8 - ((epochCount - epochOld) % (_BLOCKS_PER_READJUSTMENT/8));
+				return (blocks);
+		}else{
+			    blocks = _BLOCKS_PER_READJUSTMENT - ((epochCount - epochOld) % _BLOCKS_PER_READJUSTMENT);
+			    return (blocks);
+		}
+	
+	}
 
 
 	function reAdjustsToWhatDifficulty() public view returns (uint difficulty) {
@@ -330,42 +365,10 @@ contract MineableToken is IERC20 {
 	}
 
 
-	function _reAdjustDifficulty() internal {
-		uint256 blktimestamp = block.timestamp;
-		uint TimeSinceLastDifficultyPeriod2 = blktimestamp - latestDifficultyPeriodStarted2;
-		uint epochTotal = epochCount - epochOld;
-		uint adjusDiffTargetTime = targetTime *  epochTotal; 
-		epochOld = epochCount;
 
-		//if there were less eth blocks passed in time than expected
-		if( TimeSinceLastDifficultyPeriod2 < adjusDiffTargetTime )
-		{
-			uint excess_block_pct = (adjusDiffTargetTime.mult(100)).div( TimeSinceLastDifficultyPeriod2 );
-			uint excess_block_pct_extra = excess_block_pct.sub(100).limitLessThan(1000);
-			//make it harder 
-			miningTarget = miningTarget.sub(miningTarget.div(2000).mult(excess_block_pct_extra));   //by up to 50 %
-		}else{
-			uint shortage_block_pct = (TimeSinceLastDifficultyPeriod2.mult(100)).div( adjusDiffTargetTime );
-			uint shortage_block_pct_extra = shortage_block_pct.sub(100).limitLessThan(1000); //always between 0 and 1000
-			//make it easier
-			miningTarget = miningTarget.add(miningTarget.div(500).mult(shortage_block_pct_extra));   //by up to 200 %
-		}
-
-		latestDifficultyPeriodStarted2 = blktimestamp;
-		latestDifficultyPeriodStarted = ArbSys(0x0000000000000000000000000000000000000064).arbBlockNumber();
-		if(miningTarget < _MINIMUM_TARGET) //very difficult
-		{
-			miningTarget = _MINIMUM_TARGET;
-		}
-		if(miningTarget > _MAXIMUM_TARGET) //very easy
-		{
-			miningTarget = _MAXIMUM_TARGET;
-		}
-		
-	}
-
-
-//Stat Functions
+/////////////////////////
+// Statistics Functions /
+/////////////////////////
 
 	function inflationMined () public view returns (uint YearlyInflation, uint EpochsPerYear, uint RewardsAtTime, uint TimePerEpoch){
 		if(epochCount - epochOld == 0){
@@ -408,7 +411,12 @@ contract MineableToken is IERC20 {
 		return (amt, timePerEpoch, daysz);
 	}
 
-	//help debug mining software
+
+
+/////////////////////////
+/// Debug Functions  ////
+/////////////////////////
+
 	function checkMintSolution(uint256 nonce, bytes32 challenge_digest, bytes32 challenge_number, uint testTarget) public view returns (bool success) {
 		bytes32 digest = bytes32(keccak256(abi.encodePacked(challenge_number,msg.sender,nonce)));
 		if(uint256(digest) > testTarget) revert();
@@ -452,8 +460,8 @@ contract MineableToken is IERC20 {
     }
 
 	//~21m coins total in minting
-	//reward begins at 20 and the same for the first 8 eras (0-7), targetTime doubles to compensate for first 8 eras
-	//After rewardEra = 8 it halves the reward every Era after because no more targetTime is added
+	//reward begins at 50 and the same for the first 3 eras (0-3), targetTime doubles to compensate for first 3 eras
+	//After rewardEra = 3 it halves the reward every Era after because no more targetTime is added
 	function getMiningReward() public view returns (uint) {
 		//once we get half way thru the coins, only get 25 per block
 		//every reward era, the reward amount halves.
@@ -482,6 +490,10 @@ contract MineableToken is IERC20 {
 
 	}
 
+
+/////////////////////////
+///  ERC20 Functions  ///
+/////////////////////////
 
 		// ------------------------------------------------------------------------
 
