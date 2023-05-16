@@ -153,11 +153,7 @@ contract MineableToken is IERC20 {
     uint public reward_amount = 50;
     
     //Stuff for Functions
-	uint public sentToLP = 0; //Total ABAS sent to LP pool
-    uint public multipler = 0; //Multiplier on held Ethereum (more we hold less % we distribute)
-    uint public oldecount = 0; //Previous block count for ArewardSender function
-    uint public previousBlockTime  =  block.timestamp; // Previous Blocktime
-    uint public tokensMinted = 0;			//Tokens Minted only for Miners
+    uint public tokensMinted = 0;			//Tokens Minted for Miners
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
     uint public epochOld = 0;  //Epoch count at each readjustment 
@@ -170,7 +166,6 @@ contract MineableToken is IERC20 {
     
     // mint 1 token to setup LPs
 	    constructor() {
-	        previousBlockTime = block.timestamp;
 	        reward_amount = 50 * 10**uint(decimals);
     	    rewardEra = 0;
 	        tokensMinted = 0;
