@@ -4,7 +4,8 @@
 // Decimals: 18 
 //
 // Total supply: 21,000,000
-// Mined over 50+ years using Bitcoins Distrubtion halvings every 4 years @ 360 min solves. Uses Proof-oF-Work to distribute the tokens. Public Miner is available.  Uses this contract.
+// Mined over 50+ years using Bitcoins Distrubtion halvings every 4 years. Uses Proof-oF-Work to distribute the tokens. 
+//Public Miner is available.
 //
 //      
 // No premine, dev cut, or advantage taken at launch. Public miner available at launch.  100% of the token is given away fairly over 100+ years using Bitcoins model!
@@ -126,7 +127,7 @@ contract MineableToken is IERC20 {
 
 	
     uint public targetTime = 60 * 12;
-// SUPPORTING CONTRACTS
+
 //Events
     using SafeMath2 for uint256;
     using ExtendedMath2 for uint;
@@ -136,10 +137,12 @@ contract MineableToken is IERC20 {
 // Managment events
     uint256 override public totalSupply = 21000000000000000000000000;
     bytes32 private constant BALANCE_KEY = keccak256("balance");
-    //BITCOIN INITALIZE Start
+    //MineableToken INITALIZE Start
 	
     uint _totalSupply = 21000000000000000000000000;
+    uint public epochOld = 0;  //Epoch count at each readjustment 
     uint public latestDifficultyPeriodStarted2 = block.timestamp; //BlockTime of last readjustment
+    uint public latestDifficultyPeriodStarted = ArbSys(0x0000000000000000000000000000000000000064).arbBlockNumber();
     uint public epochCount = 0;//number of 'blocks' mined
 	uint public latestreAdjustStarted = block.timestamp; 
     uint public _BLOCKS_PER_READJUSTMENT = 1024; // should be 1024
@@ -148,21 +151,22 @@ contract MineableToken is IERC20 {
     uint public miningTarget = _MAXIMUM_TARGET;  //1000 million difficulty to start until i enable mining
     
     bytes32 public challengeNumber = ArbSys(0x0000000000000000000000000000000000000064).arbBlockHash( ArbSys(0x0000000000000000000000000000000000000064).arbBlockNumber() - 2);   //generate a new one when a new reward is minted
+
     uint public rewardEra = 0;
     uint public maxSupplyForEra = (_totalSupply - _totalSupply.div( 2**(rewardEra + 1)));
-    uint public reward_amount = 50;
+    uint public reward_amount;
     
     //Stuff for Functions
-    uint public tokensMinted = 0;			//Tokens Minted for Miners
+    uint public tokensMinted = 0;			//Tokens Minted to Miners
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
-    uint public epochOld = 0;  //Epoch count at each readjustment 
+
+    
     // metadata
     string public name = "Mineable Token";
     string public constant symbol = "MT";
     uint8 public constant decimals = 18;
 	
-    uint public latestDifficultyPeriodStarted = ArbSys(0x0000000000000000000000000000000000000064).arbBlockNumber();
     
     // mint 1 token to setup LPs
 	    constructor() {
@@ -217,22 +221,20 @@ contract MineableToken is IERC20 {
 
 
 		//if max supply for the era will be exceeded next reward round then enter the new era before that happens
-		//59 is the final reward era, almost all tokens minted
+		//15 is the final reward era.
 		if( tokensMinted.add(reward_amount) > maxSupplyForEra && rewardEra < 15)
 		{
 			rewardEra = rewardEra + 1;
 			maxSupplyForEra = _totalSupply - _totalSupply.div( 2**(rewardEra + 1));
-			if(rewardEra < 8){
+			if(rewardEra < 4){
 				targetTime = ((12 * 60) * 2**rewardEra);
-				if(rewardEra < 6){
-					if(_BLOCKS_PER_READJUSTMENT <= 16){
-						_BLOCKS_PER_READJUSTMENT = 8;
-					}else{
-						_BLOCKS_PER_READJUSTMENT = _BLOCKS_PER_READJUSTMENT / 2;
-					}
+				if(_BLOCKS_PER_READJUSTMENT <= 16){
+					_BLOCKS_PER_READJUSTMENT = 8;
+				}else{
+					_BLOCKS_PER_READJUSTMENT = _BLOCKS_PER_READJUSTMENT / 2;
 				}
 			}else{
-				reward_amount = ( 50 * 10**uint(decimals)).div( 2**(rewardEra - 7  ) );
+				reward_amount = ( 50 * 10**uint(decimals)).div( 2**(rewardEra - 3  ) );
 			}
 		}
 
@@ -460,16 +462,14 @@ contract MineableToken is IERC20 {
     }
 
 	//~21m coins total in minting
-	//reward begins at 50 and the same for the first 3 eras (0-3), targetTime doubles to compensate for first 3 eras
-	//After rewardEra = 3 it halves the reward every Era after because no more targetTime is added
+	//reward begins at 50 and the same for the first 4 eras (0-3), targetTime doubles to compensate for first 4 eras
+	//After rewardEra = 4 it halves the reward every Era after because no more targetTime is added
 	function getMiningReward() public view returns (uint) {
-		//once we get half way thru the coins, only get 25 per block
-		//every reward era, the reward amount halves.
 
-		if(rewardEra < 8){
+		if(rewardEra < 4){
 			return ( 50 * 10**uint(decimals));
 		}else{
-			return ( 50 * 10**uint(decimals)).div( 2**(rewardEra - 7  ) );
+			return ( 50 * 10**uint(decimals)).div( 2**(rewardEra - 3  ) );
 		}
 		}
 
