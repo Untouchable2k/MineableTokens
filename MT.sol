@@ -125,7 +125,7 @@ interface IERC20 {
 
 contract MineableToken is IERC20 {
 
-	
+// Average BlockTime
     uint public targetTime = 60 * 12;
 
 //Events
@@ -137,14 +137,14 @@ contract MineableToken is IERC20 {
 // Managment events
     uint256 override public totalSupply = 21000000000000000000000000;
     bytes32 private constant BALANCE_KEY = keccak256("balance");
+    
 //MineableToken INITALIZE Start
-	
     uint _totalSupply = 21000000000000000000000000;
     uint public epochOld = 0;  //Epoch count at each readjustment 
     uint public latestDifficultyPeriodStarted2 = block.timestamp; //BlockTime of last readjustment
     uint public latestDifficultyPeriodStarted = ArbSys(0x0000000000000000000000000000000000000064).arbBlockNumber();
     uint public epochCount = 0;//number of 'blocks' mined
-	uint public latestreAdjustStarted = block.timestamp; 
+    uint public latestreAdjustStarted = block.timestamp; 
     uint public _BLOCKS_PER_READJUSTMENT = 1024; // should be 1024
     uint public  _MAXIMUM_TARGET = 2**234;
     uint public  _MINIMUM_TARGET = 2**16; 
